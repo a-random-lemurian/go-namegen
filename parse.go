@@ -46,6 +46,13 @@ func jsonParsePhrase(phrase interface{}) []PhraseFragment {
 }
 
 /*
+Unmarshal JSON text into a PhraseSet.
+*/
+func Unmarshal(jsonText []byte) (PhraseSet, error) {
+	return jsonToPhraseSet(jsonText)
+}
+
+/*
 Convert a JSON phrase set file into a usable PhraseSet.
 */
 func jsonToPhraseSet(jsonText []byte) (PhraseSet, error) {
@@ -81,6 +88,8 @@ func OpenPhraseFile(file string) PhraseSet {
 
 	var phrases PhraseSet
 	phrases, err = jsonToPhraseSet(data)
+
+	phrases.defaults()
 
 	return phrases
 }
