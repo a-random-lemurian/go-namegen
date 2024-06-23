@@ -1,7 +1,6 @@
 package namegen
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,15 +12,17 @@ func getPackagePath() string {
 	return filepath.Dir(filename)
 }
 
-func DefaultPhraseSet() PhraseSet {
+func DefaultPhraseSet() *PhraseSet {
 	defaultFilename := filepath.Join(getPackagePath(), "default.json")
 	data, err := os.ReadFile(defaultFilename)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Failed to read file %s", defaultFilename))
+		log.Fatalf("Failed to read file %s", defaultFilename)
 	}
 
-	var phrases PhraseSet
-	phrases, err = jsonToPhraseSet(data)
+	phrases, err := jsonToPhraseSet(data)
+	if err != nil {
+		log.Fatalf("Error: %s -- This is an error in the default phraseset.", err)
+	}
 
 	return phrases
 }

@@ -16,10 +16,20 @@ func makeStringSlice(interf interface{}) []string {
 	return slice
 }
 
-func jsonParsePhrase(phrase interface{}) []PhraseFragment {
+type ParseError struct {
+	Err error
+}
+
+func (e *ParseError) Error() string {
+	return fmt.Sprintf("%v", e.Err)
+}
+
+func jsonParsePhrase(phrase interface{}) ([]PhraseFragment, error) {
 	phraseFrags, ok := phrase.([]interface{})
 	if !ok {
-		fatal("JSON error: Failed to parse phrase")
+		return nil, &ParseError{
+			Err: fmt.Errorf("JSON error: Failed to parse phrase"),
+		}
 	}
 
 	var pfSlice []PhraseFragment
@@ -29,7 +39,9 @@ func jsonParsePhrase(phrase interface{}) []PhraseFragment {
 		m := v.(map[string]interface{})
 
 		if m["word"] != nil && m["phrase"] != nil {
-			fatal("JSON error: You may not specify both a word and phrase at the same time")
+			return nil, &ParseError{
+				Err: fmt.Errorf("You may not specify both a word and phrase at the same time"),
+			}
 		}
 
 		if m["word"] != nil {
@@ -42,24 +54,24 @@ func jsonParsePhrase(phrase interface{}) []PhraseFragment {
 		pfSlice = append(pfSlice, pf)
 	}
 
-	return pfSlice
+	return pfSlice, nil
 }
 
 /*
 Unmarshal JSON text into a PhraseSet.
 */
-func Unmarshal(jsonText []byte) (PhraseSet, error) {
+func Unmarshal(jsonText []byte) (*PhraseSet, error) {
 	return jsonToPhraseSet(jsonText)
 }
 
 /*
 Convert a JSON phrase set file into a usable PhraseSet.
 */
-func jsonToPhraseSet(jsonText []byte) (PhraseSet, error) {
+func jsonToPhraseSet(jsonText []byte) (*PhraseSet, error) {
 	var data map[string]interface{}
 	err := json.Unmarshal(jsonText, &data)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("JSON parse error"))
+		log.Fatalf("JSON parse error")
 	}
 
 	var pset PhraseSet
@@ -72,22 +84,26 @@ func jsonToPhraseSet(jsonText []byte) (PhraseSet, error) {
 	for phrName, phrVal := range rawPhrases {
 		var phrase Phrase
 		phrase.Name = phrName
-		phrase.Fragments = jsonParsePhrase(phrVal)
+		phrase.Fragments, err = jsonParsePhrase(phrVal)
+		if err != nil {
+			return nil, err
+		}
 		pset.Phrases[phrName] = phrase
 	}
 
-	return pset, nil
+	pset.defaults()
+
+	return &pset, nil
 }
 
 // Open a .json file containing phrases, and convert it into a PhraseSet.
-func OpenPhraseFile(file string) PhraseSet {
+func OpenPhraseFile(file string) *PhraseSet {
 	data, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Failed to read file %s", file))
+		log.Fatalf("Failed to read file %s", file)
 	}
 
-	var phrases PhraseSet
-	phrases, err = jsonToPhraseSet(data)
+	phrases, err := jsonToPhraseSet(data)
 
 	phrases.defaults()
 
