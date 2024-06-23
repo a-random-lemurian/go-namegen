@@ -97,7 +97,7 @@ func jsonToPhraseSet(jsonText []byte) (*PhraseSet, error) {
 }
 
 // Open a .json file containing phrases, and convert it into a PhraseSet.
-func OpenPhraseFile(file string) *PhraseSet {
+func OpenPhraseFile(file string) (*PhraseSet, error) {
 	data, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("Failed to read file %s", file)
@@ -105,7 +105,9 @@ func OpenPhraseFile(file string) *PhraseSet {
 
 	phrases, err := jsonToPhraseSet(data)
 
-	phrases.defaults()
+	if err != nil {
+		phrases.defaults()
+	}
 
-	return phrases
+	return phrases, err
 }

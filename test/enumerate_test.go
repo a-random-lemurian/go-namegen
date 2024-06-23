@@ -18,7 +18,10 @@ var testCases = []testCase{
 }
 
 func TestEnumerate(t *testing.T) {
-	phrase := ng.OpenPhraseFile(getTestPhraseSet())
+	phrase, err := ng.OpenPhraseFile(getTestPhraseSet())
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	for _, tcase := range testCases {
 		permuts := phrase.Enumerate(tcase.phrase)

@@ -8,7 +8,10 @@ import (
 )
 
 func TestRecursion(t *testing.T) {
-	phrase := ng.OpenPhraseFile(getTestPhraseSet())
+	phrase, err := ng.OpenPhraseFile(getTestPhraseSet())
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
