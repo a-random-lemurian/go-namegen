@@ -12,4 +12,7 @@ type PhraseFragment struct {
 
 type PhraseSet struct {
 	Phrases map[string]Phrase
+
+	MaxRecursionLevel int
+	MaxPhraseUseCount int
 }

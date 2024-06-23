@@ -6,6 +6,7 @@ import (
 )
 
 type stringGenRecursion struct {
+	parent         *PhraseSet
 	phraseCounts   map[string]int
 	totalRecursion int
 	phrasePath     []string
@@ -34,7 +35,8 @@ func (sgr *stringGenRecursion) RegisterRecursion(name string) {
 	sgr.phrasePath = append(sgr.phrasePath, name)
 
 	// Recursion!
-	if sgr.phraseCounts[name] >= 5 || sgr.totalRecursion > 200 {
+	if sgr.phraseCounts[name] >= sgr.parent.MaxPhraseUseCount ||
+		sgr.totalRecursion > sgr.parent.MaxRecursionLevel {
 		sgr.dieOfExcessiveRecursion()
 	}
 }
@@ -61,5 +63,5 @@ func (ps *PhraseSet) generateString(name string, sgr *stringGenRecursion) string
 
 // Generate a random string from a phrase.
 func (ps *PhraseSet) GenerateString(name string) string {
-	return ps.generateString(name, &stringGenRecursion{})
+	return ps.generateString(name, &stringGenRecursion{parent: ps})
 }
